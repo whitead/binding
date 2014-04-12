@@ -8,18 +8,21 @@ state points.
 
 Programs
 ----------------------------------------
+
 *packmol
 *gromacs-4.6.1 
 *plumed-1.3
 *python
 
+
 Workflow
 ----------------------------------------
 
-# Combine structures with packmol 
-# Solvate with gen_box and balance charge (3 nm)
-# NPT simulation to achieve desired pressure, 10ns
-# Well-tempered metadynamics in NVT with Bussi-Donadio-Parrinello thermostat
+1. Combine structures with packmol 
+2. Solvate with gen_box and balance charge (3 nm)
+3. NPT simulation to achieve desired pressure, 10ns
+4. Well-tempered metadynamics in NVT with Bussi-Donadio-Parrinello thermostat
+
 
 More details
 ----------------------------------------
