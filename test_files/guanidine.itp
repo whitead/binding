@@ -1,0 +1,92 @@
+;
+; 	OPLS-AA topology, built by TopolGen version 1.1_dev (10/14/2009)
+; 	Script written by: Justin Lemkul (jalemkul@vt.edu)
+; 	This is your molecule's topology
+; 	Check it carefully for any errors. It is not necessarily perfect!
+;
+; 	Topology written on Sun Apr 13 21:19:38 CDT 2014
+;
+; Include force field
+#include "ffoplsaa.itp"
+
+[ moleculetype ]
+; Name            nrexcl
+GUA                 3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+     1   opls_305      1    GUA      C      1      0.200   12.01100                             
+     2   opls_303      1    GUA      N      2     -0.700   14.00670                             
+     3   opls_140      1    GUA      H      2      0.060    1.00800                             
+     4   opls_140      1    GUA      H      2      0.060    1.00800                             
+     5   opls_140      1    GUA      H      2      0.060    1.00800                             
+     6   opls_300      1    GUA      N      3     -0.800   14.00670                             
+     7   opls_300      1    GUA      N      4     -0.800   14.00670                             
+     8   opls_302      1    GUA      C      5      0.640   12.01100                             
+     9   opls_301      1    GUA      H      5      0.460    1.00800                             
+    10   opls_301      1    GUA      H      5      0.460    1.00800                             
+    11   opls_304      1    GUA      H      5      0.440    1.00800                             
+    12   opls_301      1    GUA      H      5      0.460    1.00800                             
+    13   opls_301      1    GUA      H      5      0.460    1.00800                             
+
+[ bonds ]
+;  ai    aj funct
+    1     2     1	;     C     N
+    1     3     1	;     C     H
+    1     4     1	;     C     H
+    1     5     1	;     C     H
+    2     8     1	;     N     C
+    2    11     1	;     N     H
+    6     8     1	;     N     C
+    6     9     1	;     N     H
+    6    10     1	;     N     H
+    7     8     1	;     N     C
+    7    12     1	;     N     H
+    7    13     1	;     N     H
+
+[ pairs ]
+; 1,4 interactions
+;  ai    aj funct
+   9      2
+   9	  7
+   10	  2
+   10	  7
+   12	  2
+   12	  6
+   13	  2
+   13	  6
+   6	  11
+   6	  1
+   7	  11
+   7	  1
+   8	  3
+   8	  4
+   8	  5
+   11	  3
+   11	  4
+   11	  5  
+
+[ angles ]
+;  ai    aj    ak funct
+    2     1     3     1	;     N     C     H
+    2     1     4     1	;     N     C     H
+    2     1     5     1	;     N     C     H
+    1     2     8     1	;     N     C     C
+    1     2    11     1	;     N     C     H
+    3     1     4     1	;     H     C     H
+    3     1     5     1	;     H     C     H
+    4     1     5     1	;     H     C     H
+    8     2    11     1	;     C     N     H
+    8     6     9     1	;     C     N     H
+    8     6    10     1	;     C     N     H
+    9     6    10     1	;     H     N     H
+    8     7    12     1	;     C     N     H
+    8     7    13     1	;     C     N     H
+   12     7    13     1	;     H     N     H
+
+[ dihedrals ]
+;  aj    ak    ai    al funct
+    1     8     2    11     1    improper_Z_N_X_Y	;     H     C     C     N
+    8     9     6    10     1    improper_Z_N_X_Y	;     H     N     H     C
+    8    12     7    13     1    improper_Z_N_X_Y	;     H     N     H     C
+
