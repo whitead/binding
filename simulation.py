@@ -51,10 +51,10 @@ class Simulation:
                         self.itp_files.append(file)
                         to_copy.append(os.path.join(dir, file))
 
-
+        
         self._setup_directory(*to_copy)
         if(initialize):
-            self._pack(anion_filename, anion_resname, cation_filename, cation_resname, cation_number, BOX_DIM)
+            self._pack(os.path.basename(anion_filename), anion_resname, os.path.basename(cation_filename), cation_resname, cation_number, BOX_DIM)
             self._solvate(BOX_DIM)
 
     def _putInDir(dirname):
@@ -107,17 +107,10 @@ class Simulation:
             nstlog                   = 1000
             nstenergy                = 0
             
-            ; NEIGHBORSEARCHING PARAMETERS = 
-            rlist                    = 1.3
-            
             ; OPTIONS FOR ELECTROSTATICS AND VDW = 
             ; Method for doing electrostatics = 
-            coulomb_type             = PME-Switch
-            rcoulomb_switch          = 1.0
-            rcoulomb                 = 1.0
-            ; Method for doing Van der Waals = 
-            vdw_type                 = cut-off
-            ; cut-off lengths        = 
+            coulomb_type             = PME
+            ; cut-off lengths
             rvdw                     = 1
             dispcorr                 = ener
             ewald_rtol               = 1e-5
@@ -129,7 +122,7 @@ class Simulation:
         #run
         emin_structure = 'emin_noion.gro'
         self.current_run = 'topol.tpr'
-        self._exec_log(MDRUN, {'c':emin_structure, 'f':self.current_run})
+        self._exec_log(MDRUN, {'c':emin_structure, 's':self.current_run})
         self.current_structure = emin_structure
         
     def _setup_directory(self, *to_copy):

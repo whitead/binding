@@ -6,9 +6,6 @@
 ;
 ; 	Topology written on Sun Apr 13 21:19:38 CDT 2014
 ;
-; Include force field
-#include "ffoplsaa.itp"
-
 [ moleculetype ]
 ; Name            nrexcl
 GUA                 3

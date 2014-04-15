@@ -4,7 +4,7 @@ from simulation import *
 class TestSimulationSimple(unittest.TestCase):
 
     def setUp(self):
-        self.sim = Simulation('TestSimulationDir', 
+        self.sim = Simulation('TestSimulationSimpleDir', 
                               'test_files/acetate.gro', 
                               'ACT', 
                               'test_files/guanidine.gro', 
@@ -16,7 +16,7 @@ class TestSimulationSimple(unittest.TestCase):
 
     def tearDown(self):
         os.chdir('..')
-#        shutil.rmtree('TestSimulationDir')
+        shutil.rmtree('TestSimulationSimpleDir')
     
     def test_pack(self):
         self.sim._pack('acetate.gro', 'ACT', 'guanidine.gro', 'GUA', 1, 3)
@@ -43,17 +43,13 @@ class TestSimulation(unittest.TestCase):
                               True)
 
     def tearDown(self):
-        os.chdir('..')
+        os.chdir('..')        
 #        shutil.rmtree('TestSimulationDir')
     
     def test_emin(self):
         self.sim.emin()
         self.assertTrue(os.path.exists('mix.gro'))
         
-
-if __name__ == '__main__':
-    unittest.main()
-
 
 if __name__ == '__main__':
     unittest.main()
