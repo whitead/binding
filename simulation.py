@@ -42,7 +42,10 @@ class Simulation:
         self.pressure = pressure
         self.equil_time = equil_time
         self.prod_time=prod_time
-        self.ionc
+        self.ionc = salt_conc
+        self.add_ions = False
+        if(salt_conc > 0 or cation_number != 1):
+            self.add_ions = True
         
         to_copy = [anion_filename, cation_filename, topology_filename]
         #parse the topology file to find itp files to take
@@ -126,15 +129,27 @@ class Simulation:
         #prepare run
         self._exec_log('grompp', {'c':self.current_structure, 'f':input_file, 'p':self.current_top})
         #run
-        emin_structure = 'emin_noion.gro'
+        emin_structure = 'emin_noion.gro' if self.add_ions else 'emin.gro'
         self.current_run = 'topol.tpr'
         self._exec_log(MDRUN, {'c':emin_structure, 's':self.current_run})
         self.current_structure = emin_structure
 
-        #now add ions
-        emin_structure = 'emin.gro'
-        self._exec_log('genion', {'s':self.current_run, 'o':emin_structure, 'neutral':'', 'conc':self.ionc})
-        self.current_structure = emin_structure
+        #now add ions if needed
+        if(self.add_ions):
+            emin_structure = 'emin.gro'
+
+            #get the group for SOL. Requires a read and kill to find group ordering
+            match = self._read_and_kill(string='genion', 
+                                    arg_dic={'s':self.current_run, 
+                                             'o':emin_structure, 
+                                             'neutral':'', 
+                                             'conc':self.ionc},
+                                    read_fxn=lambda x: re.match('\s*Group\s*(\d+)\s*\(\s*SOL.*', x))
+            sol_group = match.group(1)
+            self._exec_log('genion', 
+                           {'s':self.current_run, 'o':emin_structure, 'neutral':'', 'conc':self.ionc}, 
+                           sol_group)
+            self.current_structure = emin_structure
 
 
 
@@ -175,10 +190,12 @@ class Simulation:
             tcoupl                   = v-rescale
             tau_t                    = 2
             ref_t                    = 300
+            tc-grps                  = System
             
-            ;Pressure
+            ;Pressure            
             pcoupl                   = berendsen
             tau_p                    = 2
+            compressibility          = 4.5e-5
             ref_p                    = {pressure}
 
             ;Constraints
@@ -235,7 +252,61 @@ class Simulation:
         self._exec_log('genbox', args)
         self.current_structure = out_name
 
-    def _exec_log(self, string, arg_dic=None):
+    def _read_and_kill(self, string, read_fxn, arg_dic=None):
+        """
+        Execute the given string, reads its input and kills it
+        
+        Arguments:
+        string --- the command to execute
+        arg_doc --- additional arguments to add to the command string
+        read_fxn -- a function which is called on each line of the output. It should return None when
+                        it needs to process additional lines. The first none None value is returned
+                        and the process is terminated.
+        """
+        if(arg_dic is not None):
+            for k,v in arg_dic.iteritems():
+                string += ' -{} {}'.format(k,v)
+        try:
+            
+            from threading import Thread
+            from Queue import Queue, Empty
+            #wait for process to stop. hack
+            def enqueue_output(out, queue):
+                for line in iter(out.readline, b''):
+                    queue.put(line)
+                out.close()
+
+            process = subprocess.Popen(string, shell=True,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+
+            q = Queue()
+            #SO FUCKING ANNOYING, gromacs uses stderr for communicating. So dumb
+            t = Thread(target=enqueue_output, args=(process.stderr, q))
+            t.daemon=True
+            t.start()
+
+            logging.debug('Reading from cmd {}'.format(string))
+            while process.poll() is None:
+                try: 
+                    line = q.get(timeout=1)
+                    logging.debug('line: {}'.format(line))
+                    v = read_fxn(line)
+                    if(v is not None):
+                        process.terminate()
+                        return v
+                except Empty: continue
+
+
+        except OSError as e:
+            print >>sys.stderr, 'Execution of {} failed:'.format(string), e
+
+        logging.error('Command {} failed'.format(string)) 
+        raise RuntimeError()
+            
+
+
+    def _exec_log(self, string, arg_dic=None, input=None):
         """
         Smartly executes the given string and logs the results
         """
@@ -244,17 +315,23 @@ class Simulation:
                 string += ' -{} {}'.format(k,v)
         try:
             process = subprocess.Popen(string, shell=True,
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE)
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE,
+                                       stdin=subprocess.PIPE)
                            
-            out, err = process.communicate()
+            if(input is None):
+                out, err = process.communicate()
+            else:
+                out, err = process.communicate(input)
             retcode = process.returncode
             logging.debug(out)
             if(len(err) > 0):
                 logging.warning(err)
+                logging.debug(out)
             if retcode < 0:
                 logging.error('{} failed with {}. stderr follow'.format(string, retcode))
                 logging.error(err)
+                raise OSError('{} failed with {}. stderr follow'.format(string, retcode))
             else:
                 logging.info('{} with arguments'.format(string))
         except OSError as e:

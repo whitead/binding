@@ -49,7 +49,7 @@ class TestSimulation(unittest.TestCase):
 
     def tearDown(self):
         os.chdir('..')        
-        shutil.rmtree('TestSimulationDir')
+#        shutil.rmtree('TestSimulationDir')
     
     def test_emin(self):
         self.sim.emin()
@@ -63,7 +63,7 @@ class TestSimulation(unittest.TestCase):
     def test_equil(self):
         self.sim.emin()
         self.sim.equilibrate()
-        self.assertTrue(os.path.exists('emin.gro'))
+        self.assertTrue(os.path.exists('equil.gro'))
 
         
 
