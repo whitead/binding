@@ -12,7 +12,7 @@ class TestSimulationSimple(unittest.TestCase):
                               'test_files/topology.top',
                               1, 
                               1, 
-                              False)
+                              initialize=False)
 
     def tearDown(self):
         os.chdir('..')
@@ -27,6 +27,12 @@ class TestSimulationSimple(unittest.TestCase):
         self.sim._solvate(3)
         self.assertTrue(os.path.exists('dry_mix.gro'))
         self.assertTrue(os.path.exists('mix.gro'))
+
+    def test_different_numbers(self):
+        self.sim._pack('acetate.gro', 'ACT', 'guanidine.gro', 'GUA', 5, 3)
+        self.assertTrue(os.path.exists('dry_mix.gro'))
+
+
         
 
 class TestSimulation(unittest.TestCase):
@@ -39,16 +45,26 @@ class TestSimulation(unittest.TestCase):
                               'GUA',
                               'test_files/topology.top',
                               1, 
-                              1, 
-                              True)
+                              1)
 
     def tearDown(self):
         os.chdir('..')        
-#        shutil.rmtree('TestSimulationDir')
+        shutil.rmtree('TestSimulationDir')
     
     def test_emin(self):
         self.sim.emin()
-        self.assertTrue(os.path.exists('mix.gro'))
+        self.assertTrue(os.path.exists('emin.gro'))
+        
+    def test_ionc(self):
+        self.sim.ionc = 0.1
+        self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
+
+    def test_equil(self):
+        self.sim.emin()
+        self.sim.equilibrate()
+        self.assertTrue(os.path.exists('emin.gro'))
+
         
 
 if __name__ == '__main__':

@@ -1,12 +1,11 @@
 import logging, os, shutil, datetime, subprocess, re, textwrap
 
 
-ION_CONC=100#mM
+ION_CONC=0#Molarity
 BOX_DIM=3#nm
-PACKMOL='$HOME/packmol/packmol'
-FF='oplsaa'
-WATER='tip4p'
 MDRUN='mdrun'
+EQUIL_TIME=2.5
+PROD_TIME=40
 
         
 class Simulation:
@@ -30,6 +29,9 @@ class Simulation:
                  topology_filename, 
                  pressure, 
                  cation_number, 
+                 equil_time=EQUIL_TIME,
+                 prod_time=PROD_TIME,
+                 salt_conc=ION_CONC,
                  initialize=True):
         """
         Creates the directory, puts the cation and anion together and solvates
@@ -37,6 +39,10 @@ class Simulation:
         self.name = name        
         self.current_top = os.path.basename(topology_filename)
         self.current_structure, self.current_run = None, None
+        self.pressure = pressure
+        self.equil_time = equil_time
+        self.prod_time=prod_time
+        self.ionc
         
         to_copy = [anion_filename, cation_filename, topology_filename]
         #parse the topology file to find itp files to take
@@ -124,6 +130,70 @@ class Simulation:
         self.current_run = 'topol.tpr'
         self._exec_log(MDRUN, {'c':emin_structure, 's':self.current_run})
         self.current_structure = emin_structure
+
+        #now add ions
+        emin_structure = 'emin.gro'
+        self._exec_log('genion', {'s':self.current_run, 'o':emin_structure, 'neutral':'', 'conc':self.ionc})
+        self.current_structure = emin_structure
+
+
+
+    @_putInDir('equil')
+    def equilibrate(self):
+        """
+        Equilibrate the system in NPT
+        """
+        #build input file
+        input_file = 'equil.mdp'
+        with open(input_file, 'w') as f:
+            f.write(textwrap.dedent('''
+            ; RUN CONTROL PARAMETERS = 
+            integrator               = sd
+            nsteps                   = {time}
+            dt                       = 0.002
+            
+            
+            
+            ; Output frequency for coords (x), velocities (v) and forces (f) = 
+            nstxout                  = 1000
+            nstvout                  = 0
+            nstfout                  = 0
+            
+            ; Output frequency for energies to log file and energy file = 
+            nstlog                   = 1000
+            nstenergy                = 0
+            
+            ; OPTIONS FOR ELECTROSTATICS AND VDW = 
+            ; Method for doing electrostatics = 
+            coulomb_type             = PME
+            ; cut-off lengths
+            rvdw                     = 1
+            dispcorr                 = ener
+            ewald_rtol               = 1e-5
+
+            ;Temperature
+            tcoupl                   = v-rescale
+            tau_t                    = 2
+            ref_t                    = 300
+            
+            ;Pressure
+            pcoupl                   = berendsen
+            tau_p                    = 2
+            ref_p                    = {pressure}
+
+            ;Constraints
+            constraints              = h-angles
+
+            '''.format(pressure=self.pressure * 1.01325, time=self.equil_time * 10**6 / 2.)))
+
+        #prepare run
+        self._exec_log('grompp', {'c':self.current_structure, 'f':input_file, 'p':self.current_top})
+        #run
+        equil_structure = 'equil.gro'
+        self.current_run = 'topol.tpr'
+        self._exec_log(MDRUN, {'c':equil_structure, 's':self.current_run})
+        self.current_structure = equil_structure
+
         
     def _setup_directory(self, *to_copy):
         #build directory, start log
