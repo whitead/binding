@@ -81,9 +81,18 @@ GUA                 3
     8     7    13     1	;     C     N     H
    12     7    13     1	;     H     N     H
 
-[ dihedrals ]
-;  aj    ak    ai    al funct
-    1     8     2    11     1    improper_Z_N_X_Y	;     H     C     C     N
-    8     9     6    10     1    improper_Z_N_X_Y	;     H     N     H     C
-    8    12     7    13     1    improper_Z_N_X_Y	;     H     N     H     C
+[ dihedrals ] ; empty  
+;
 
+
+[ dihedrals ]
+;  aj    ak    ai    al funct 
+;add these?
+      
+
+
+;These are taken from the ARG residue in the aminoacids.rtp   
+    1     8     2    11  1    improper_Z_N_X_Y	;     CD     CZ     NE     HE
+    8     9     6    10  1    improper_Z_N_X_Y	;     CZ     HH11   NH1	   HH12
+    8    12     7    13  1    improper_Z_N_X_Y	;     H     N     H     C
+    2	 6	8    7	 1    improper_O_C_X_Y	;     NE    NH1	  CZ	HH12

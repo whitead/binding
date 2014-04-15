@@ -103,7 +103,8 @@ class Simulation:
         with open(input_file, 'w') as f:
             f.write(textwrap.dedent('''
             ; RUN CONTROL PARAMETERS = 
-            integrator               = cg
+            integrator               = steep
+            emtol                    = 0.01
             nsteps                   = 10000; max steps
             
             
@@ -123,6 +124,7 @@ class Simulation:
             rvdw                     = 1
             dispcorr                 = ener
             ewald_rtol               = 1e-5
+            constraints              = h-angles
 
             '''.format()))
 
@@ -170,7 +172,7 @@ class Simulation:
             
             
             ; Output frequency for coords (x), velocities (v) and forces (f) = 
-            nstxout                  = 1000
+            nstxout                  = 1
             nstvout                  = 0
             nstfout                  = 0
             
