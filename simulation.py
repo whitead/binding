@@ -1,4 +1,4 @@
-import logging, os, shutil, datetime, subprocess
+import logging, os, shutil, datetime, subprocess, re, textwrap
 
 
 ION_CONC=100#mM
@@ -15,45 +15,71 @@ class Simulation:
     
     Arguments:
     name -- the name to be used for prefixes
-    anion_filename -- a pdb file with anion structure
-    cation_filename -- a pdb file with cation structure
+    anion_filename -- a gro file with anion structure
+    cation_filename -- a gro file with cation structure
+    topology_filename -- a top file with itp include statements
     pressure -- the pressure in atmospheres
     cation_number -- the number of cations to use in the simulation
     """
-    def __init__(self, name, anion_filename, cation_filename, pressure, cation_number, initialize=True):
+    def __init__(self, 
+                 name, 
+                 anion_filename, 
+                 anion_resname, 
+                 cation_filename, 
+                 cation_resname, 
+                 topology_filename, 
+                 pressure, 
+                 cation_number, 
+                 initialize=True):
         """
         Creates the directory, puts the cation and anion together and solvates
         """
         self.name = name        
-        self.current_structure, self.current_top, self.current_run = None, None, None
-        self._setup_directory(anion_filename, cation_filename)
+        self.current_top = os.path.basename(topology_filename)
+        self.current_structure, self.current_run = None, None
+        
+        to_copy = [anion_filename, cation_filename, topology_filename]
+        #parse the topology file to find itp files to take
+        self.itp_files = []
+        with open(topology_filename) as f:
+            dir = os.path.dirname(topology_filename)
+            for line in f:
+                m = re.match(r'#include "(\S+)\.itp"', line)
+                if(m):
+                    file = '{}.itp'.format(m.group(1))
+                    if(os.path.exists(os.path.join(dir, file))):
+                        self.itp_files.append(file)
+                        to_copy.append(os.path.join(dir, file))
+
+
+        self._setup_directory(*to_copy)
         if(initialize):
-            self._pack(anion_filename, cation_filname, cation_number, BOX_DIM)
+            self._pack(anion_filename, anion_resname, cation_filename, cation_resname, cation_number, BOX_DIM)
             self._solvate(BOX_DIM)
 
     def _putInDir(dirname):
         """
         A decorator that encloses a function inside a directory
         """
-        def wrap(f):
+        def wrap(fxn):
             def mod_f(self, *args):
                 if not os.path.exists(dirname):
                     os.mkdir(dirname)
                     #bring files
-                for f in [self.current_structure, self.current_top, self.current_run]:
+                for f in self.itp_files + [self.current_structure, self.current_top, self.current_run]:
                     if(f is not None):
-                        shutil.copyfile(f, os.join(dirname, os.path.basename(f)))            
+                        shutil.copyfile(f, os.path.join(dirname, os.path.basename(f)))            
                 #go there
                 os.chdir(dirname)
-                try:            
-                    f(self, *args)
+                try:
+                    fxn(self, *args)
                 finally:
                     #make sure we leave
                     os.chdir(self.dir)
                     #bring back files
-                    for f in [self.current_structure, self.current_top, self.current_run]:
+                    for f in self.itp_files + [self.current_structure, self.current_top, self.current_run]:
                         if(f is not None):
-                            shutil.copyfile(os.join(dirname, f),f)
+                            shutil.copyfile(os.path.join(dirname, f),f)
             return mod_f
         return wrap
                 
@@ -66,7 +92,7 @@ class Simulation:
         #build input file
         input_file = 'emin.mdp'
         with open(input_file, 'w') as f:
-            f.write('''
+            f.write(textwrap.dedent('''
             ; RUN CONTROL PARAMETERS = 
             integrator               = cg
             nsteps                   = 10000; max steps
@@ -83,7 +109,6 @@ class Simulation:
             
             ; NEIGHBORSEARCHING PARAMETERS = 
             rlist                    = 1.3
-            cutoff-scheme            = Verlet
             
             ; OPTIONS FOR ELECTROSTATICS AND VDW = 
             ; Method for doing electrostatics = 
@@ -91,21 +116,21 @@ class Simulation:
             rcoulomb_switch          = 1.0
             rcoulomb                 = 1.0
             ; Method for doing Van der Waals = 
-            vdw_type                 = Shift
+            vdw_type                 = cut-off
             ; cut-off lengths        = 
             rvdw                     = 1
             dispcorr                 = ener
             ewald_rtol               = 1e-5
 
-            '''.format())
+            '''.format()))
 
         #prepare run
         self._exec_log('grompp', {'c':self.current_structure, 'f':input_file, 'p':self.current_top})
         #run
         emin_structure = 'emin_noion.gro'
-        self._exec_log(MDRUN, {'c':emin_structure, 'f':input_file, 'p':self.current_top})
-        self.current_structure = emin_structure
         self.current_run = 'topol.tpr'
+        self._exec_log(MDRUN, {'c':emin_structure, 'f':self.current_run})
+        self.current_structure = emin_structure
         
     def _setup_directory(self, *to_copy):
         #build directory, start log
@@ -122,29 +147,30 @@ class Simulation:
             logging.basicConfig(filename='simulation.log',level=logging.DEBUG)
             logging.info('Beginning simulation on {}'.format(datetime.datetime.now().strftime('%b-%d-%I%M%p-%G')))
             
+    def _pack(self, afile, ares, cfile, cres, cnumber, box):
+        #update topology file
+        with open(self.current_top, 'a') as f:
+            f.write(textwrap.dedent('''
+            [ system ]
+            ;Name
+            {name}
 
-    def _pack(self, afile, cfile, cnumber, box):
-        #build input file
-        with open('pack.inp', 'w') as f:
-            f.write('''
-            tolerance 2.0
-            filetype pdb
-            output dry_mix.pdb
-            
-            structure {afile}
-              number 1 
-              inside box 0. 0. 0. {box} {box} {box}
-            end structure
-            
-            structure {cfile}
-              number {cnumber}
-              inside box 0. 0. 0. {box} {box} {box}
-            end structure
-            '''.format(afile=afile, cfile=cfile, cnumber=cnumber, box=box*10))
+            [ molecules ]
+            {ares:10s} {anumber:3d}
+            {cres:10s} {cnumber:3d}
+            '''.format(name=self.name, ares=ares, cres=cres, anumber=1, cnumber=cnumber)))
             
         #pack
-        self._exec_log('{} < pack.inp'.format(PACKMOL))
-        self.current_structure = 'dry_mix.pdb'
+        out_name = 'dry_mix.gro'
+        args = {}
+        args['p'] = self.current_top
+        args['cp'] = afile
+        args['ci'] = cfile
+        args['o'] = out_name
+        args['nmol'] = cnumber
+        args['box'] = '{0} {0} {0}'.format(box)
+        self._exec_log('genbox', args)
+        self.current_structure = out_name
 
     def _exec_log(self, string, arg_dic=None):
         """
@@ -172,14 +198,11 @@ class Simulation:
             print >>sys.stderr, 'Execution of {} failed:'.format(string), e
 
     def _solvate(self, box):
-        args = {'ff':FF}
-        args['water'] = WATER
-        args['f'] = self.current_structure
-        args['o'] = 'dry_mix.gro'
-        self._exec_log('pdb2gmx', args)
-        args = {'cp':'dry_mix.gro'}
-        args['o'] = 'mix.gro'
+        args = {'cp':self.current_structure}
+        out_name = 'mix.gro'
+        args['o'] = out_name
+        args['p'] = self.current_top
+        args['cs'] = 'tip4p.gro'
         args['box'] = '{box} {box} {box}'.format(box=box)
         self._exec_log('genbox', args)
-        self.current_structure = 'mix.gro'
-        self.current_top = 'topol.top'
+        self.current_structure = out_name
