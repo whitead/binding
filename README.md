@@ -1,4 +1,4 @@
-Free Energy calculation for binding free energy
+Binding Free Energy Calculation
 ========================================
 
 This code automates the free energy calculations for binding between
