@@ -43,25 +43,27 @@ GUA                 3
 
 [ pairs ]
 ; 1,4 interactions
+;I've disabled some of them because they're causing the simulation to crash. 
+;Namely the ones between neighboring nitrogens and hydrogens
 ;  ai    aj funct
    9      2
-   9	  7
+;   9	  7
    10	  2
-   10	  7
+;   10	  7
    12	  2
-   12	  6
+;   12	  6
    13	  2
-   13	  6
-   6	  11
+;   13	  6
+;   6	  11
    6	  1
-   7	  11
+;   7	  11
    7	  1
    8	  3
    8	  4
    8	  5
    11	  3
    11	  4
-   11	  5  
+   11	  5 
 
 [ angles ]
 ;  ai    aj    ak funct
@@ -81,17 +83,24 @@ GUA                 3
     8     7    13     1	;     C     N     H
    12     7    13     1	;     H     N     H
 
-[ dihedrals ] ; empty  
-;
-
-
 [ dihedrals ]
+;  ai    aj    ak    al funct 
+   9     6     8     2    3
+   10     6     8     2   3
+   12     7     8     2   3
+   13     7     8     2   3
+   6	  8	2     1	  3
+   7	  8	2     1	  3
+   6	  8	2    11	  3
+   7	  8	2    11	  3
+   8	  2	1    3	  3
+   8	  2	1    4	  3
+   8	  2	1    5	  3
+   11	  2	1    3	  3
+   11	  2	1    4	  3
+   11	  2	1    5	  3
+; These are taken from the ARG residue in the aminoacids.rtp. They are impropers implemented as dihedrals
 ;  aj    ak    ai    al funct 
-;add these?
-      
-
-
-;These are taken from the ARG residue in the aminoacids.rtp   
     1     8     2    11  1    improper_Z_N_X_Y	;     CD     CZ     NE     HE
     8     9     6    10  1    improper_Z_N_X_Y	;     CZ     HH11   NH1	   HH12
     8    12     7    13  1    improper_Z_N_X_Y	;     H     N     H     C

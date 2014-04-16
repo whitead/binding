@@ -75,7 +75,7 @@ class Simulation:
                 if not os.path.exists(dirname):
                     os.mkdir(dirname)
                     #bring files
-                for f in self.itp_files + [self.current_structure, self.current_top, self.current_run]:
+                for f in self.itp_files + [self.current_structure, self.current_top]:
                     if(f is not None):
                         shutil.copyfile(f, os.path.join(dirname, os.path.basename(f)))            
                 #go there
@@ -86,7 +86,7 @@ class Simulation:
                     #make sure we leave
                     os.chdir(self.dir)
                     #bring back files
-                    for f in self.itp_files + [self.current_structure, self.current_top, self.current_run]:
+                    for f in self.itp_files + [self.current_structure, self.current_top]:
                         if(f is not None):
                             shutil.copyfile(os.path.join(dirname, f),f)
             return mod_f
@@ -123,7 +123,7 @@ class Simulation:
             ; cut-off lengths
             rvdw                     = 1
             dispcorr                 = ener
-            ewald_rtol               = 1e-5
+            ewald_rtol               = 1e-5           
             constraints              = h-angles
 
             '''.format()))
@@ -172,7 +172,7 @@ class Simulation:
             
             
             ; Output frequency for coords (x), velocities (v) and forces (f) = 
-            nstxout                  = 1
+            nstxout                  = 1000
             nstvout                  = 0
             nstfout                  = 0
             
@@ -201,7 +201,7 @@ class Simulation:
             ref_p                    = {pressure}
 
             ;Constraints
-            constraints              = h-angles
+            ;constraints              = h-angles
 
             '''.format(pressure=self.pressure * 1.01325, time=self.equil_time * 10**6 / 2.)))
 
