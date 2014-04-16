@@ -119,12 +119,16 @@ class Simulation:
             
             ; OPTIONS FOR ELECTROSTATICS AND VDW = 
             ; Method for doing electrostatics = 
-            coulomb_type             = PME
-            ; cut-off lengths
-            rvdw                     = 1
+            coulombtype     = PME
+            rvdw            = 1
+            rlist           = 1
+            rcoulomb        = 1
+            optimize-fft    = yes
+            fourierspacing  = 0.12
+            pme-order       = 4
+            ewald-rtol      = 1e-5
             dispcorr                 = ener
-            ewald_rtol               = 1e-5           
-            constraints              = h-angles
+            ;constraints              = h-angles
 
             '''.format()))
 
@@ -180,13 +184,19 @@ class Simulation:
             nstlog                   = 1000
             nstenergy                = 0
             
+
+            
             ; OPTIONS FOR ELECTROSTATICS AND VDW = 
             ; Method for doing electrostatics = 
-            coulomb_type             = PME
-            ; cut-off lengths
-            rvdw                     = 1
+            coulombtype     = PME
+            rvdw            = 1
+            rlist           = 1
+            rcoulomb        = 1
+            optimize-fft    = yes
+            fourierspacing  = 0.12
+            pme-order       = 4
+            ewald-rtol      = 1e-5
             dispcorr                 = ener
-            ewald_rtol               = 1e-5
 
             ;Temperature
             tcoupl                   = v-rescale
