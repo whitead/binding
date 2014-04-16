@@ -5,11 +5,11 @@ class TestSimulationSimple(unittest.TestCase):
 
     def setUp(self):
         self.sim = Simulation('TestSimulationSimpleDir', 
-                              'test_files/acetate.gro', 
+                              'structures/acetate.gro', 
                               'ACT', 
-                              'test_files/guanidine.gro', 
+                              'structures/guanidine.gro', 
                               'GUA',
-                              'test_files/topology.top',
+                              'structures/topology.top',
                               1, 
                               1, 
                               initialize=False)
@@ -39,11 +39,11 @@ class TestSimulation(unittest.TestCase):
 
     def setUp(self):
         self.sim = Simulation('TestSimulationDir', 
-                              'test_files/acetate.gro', 
+                              'structures/acetate.gro', 
                               'ACT', 
-                              'test_files/guanidine.gro', 
+                              'structures/guanidine.gro', 
                               'GUA',
-                              'test_files/topology.top',
+                              'structures/topology.top',
                               1, 
                               1)
 
