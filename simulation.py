@@ -6,6 +6,9 @@ BOX_DIM=3#nm
 MDRUN='mdrun'
 EQUIL_TIME=2.5
 PROD_TIME=40
+DEBUG=True
+HILL_HEIGHT=5
+SIGMA=[5,0.2]
 
         
 class Simulation:
@@ -29,9 +32,14 @@ class Simulation:
                  topology_filename, 
                  pressure, 
                  cation_number, 
+                 cation_atoms,
+                 anion_atoms,
+                 angle,                 
                  equil_time=EQUIL_TIME,
                  prod_time=PROD_TIME,
                  salt_conc=ION_CONC,
+                 hill_height=HILL_HEIGHT,
+                 sigma=SIGMA,
                  initialize=True):
         """
         Creates the directory, puts the cation and anion together and solvates
@@ -46,6 +54,11 @@ class Simulation:
         self.add_ions = False
         if(salt_conc > 0 or cation_number != 1):
             self.add_ions = True
+        self.angle = angle
+        self.cation_atoms = cation_atoms
+        self.anion_atoms = anion_atoms
+        self.hill_height = hill_height
+        self.sigma = sigma
         
         to_copy = [anion_filename, cation_filename, topology_filename]
         #parse the topology file to find itp files to take
@@ -137,7 +150,10 @@ class Simulation:
         #run
         emin_structure = 'emin_noion.gro' if self.add_ions else 'emin.gro'
         self.current_run = 'topol.tpr'
-        self._exec_log(MDRUN, {'c':emin_structure, 's':self.current_run})
+        if(DEBUG):
+            shutil.copyfile(self.current_structure, emin_structure)
+        else:
+            self._exec_log(MDRUN, {'c':emin_structure, 's':self.current_run})
         self.current_structure = emin_structure
 
         #now add ions if needed
@@ -213,15 +229,117 @@ class Simulation:
             ;Constraints
             ;constraints              = h-angles
 
-            '''.format(pressure=self.pressure * 1.01325, time=self.equil_time * 10**6 / 2.)))
+            '''.format(pressure=self.pressure * 1.01325, 
+                       time=self.equil_time * 10**6 / 2.)))
 
         #prepare run
-        self._exec_log('grompp', {'c':self.current_structure, 'f':input_file, 'p':self.current_top})
+        self._exec_log('grompp', {'c':self.current_structure, 
+                                  'f':input_file, 
+                                  'p':self.current_top})
         #run
         equil_structure = 'equil.gro'
         self.current_run = 'topol.tpr'
-        self._exec_log(MDRUN, {'c':equil_structure, 's':self.current_run})
+        if(DEBUG):
+            shutil.copyfile(self.current_structure, equil_structure)
+        else:
+            self._exec_log(MDRUN, {'c':equil_structure, 's':self.current_run})
         self.current_structure = equil_structure
+
+
+    @_putInDir('prod')
+    def production(self):
+        """
+        Production run in NVT with metadynamics
+        """
+        #build input file
+        input_file = 'prod.mdp'
+        with open(input_file, 'w') as f:
+            f.write(textwrap.dedent('''
+            ; RUN CONTROL PARAMETERS = 
+            integrator               = sd
+            nsteps                   = {time}
+            dt                       = 0.002
+            
+            
+            
+            ; Output frequency for coords (x), velocities (v) and forces (f) = 
+            nstxout                  = 1000
+            nstvout                  = 0
+            nstfout                  = 0
+            
+            ; Output frequency for energies to log file and energy file = 
+            nstlog                   = 1000
+            nstenergy                = 0
+            
+
+            
+            ; OPTIONS FOR ELECTROSTATICS AND VDW = 
+            ; Method for doing electrostatics = 
+            coulombtype     = PME
+            rvdw            = 1
+            rlist           = 1
+            rcoulomb        = 1
+            optimize-fft    = yes
+            fourierspacing  = 0.12
+            pme-order       = 4
+            ewald-rtol      = 1e-5
+            dispcorr                 = ener
+
+            ;Temperature
+            tcoupl                   = v-rescale
+            tau_t                    = 2
+            ref_t                    = 300
+            tc-grps                  = System
+            
+            ;Pressure            
+            pcoupl                   = no
+
+            ;Constraints
+            ;constraints              = h-angles
+
+            '''.format(pressure=self.pressure * 1.01325, 
+                       time=self.prod_time * 10**6 / 2.)))
+
+        #plumed file
+        plumed_file = 'plumed.dat'
+        with open(plumed_file, 'w') as f:
+            f.write(textwrap.dedent('''
+            HILL HEIGHT 0.1
+            WELLTEMPERED SIMTEMP 300 BIASFACTOR 15
+            PRINT W_STRIDE 500
+            DISTANCE LIST anion cation SIGMA 0.05
+            ANGLE {a1} {a2} {a3} SIGMA 5
+            anion->
+            {anion}
+            anion<-
+            cation->
+            {cation}
+            cation<-
+            ENDMETA
+            '''.format(a1=self.angle[0], 
+                       a2=self.angle[1], 
+                       a3=self.angle[2], 
+                       cation=reduce(lambda x,y:'{} {}'.format(x,y),
+                                     self.cation_atoms),
+                       anion=reduce(lambda x,y:'{} {}'.format(x,y),
+                                    self.anion_atoms))))
+                    
+            #prepare run
+            self._exec_log('grompp',
+                       {'c':self.current_structure, 
+                        'f':input_file, 
+                        'p':self.current_top})
+        #run
+        prod_structure = 'prod.gro'
+        self.current_run = 'topol.tpr'
+        if(DEBUG):
+            shutil.copyfile(self.current_structure, prod_structure)
+        else:
+            self._exec_log(MDRUN, 
+                           {'c':prod_structure, 
+                            's':self.current_run,
+                            'plumed':plumed_file})
+        self.current_structure = prod_structure
 
         
     def _setup_directory(self, *to_copy):

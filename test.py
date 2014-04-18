@@ -12,6 +12,9 @@ class TestSimulationSimple(unittest.TestCase):
                               'structures/topology.top',
                               1, 
                               1, 
+                              [1],
+                              [1],
+                              [1,2,3],
                               initialize=False)
 
     def tearDown(self):
@@ -45,7 +48,10 @@ class TestSimulation(unittest.TestCase):
                               'GUA',
                               'structures/topology.top',
                               1, 
-                              1)
+                              1,
+                              [1],
+                              [1],
+                              [1,2,3])
 
     def tearDown(self):
         os.chdir('..')        
@@ -64,6 +70,12 @@ class TestSimulation(unittest.TestCase):
         self.sim.emin()
         self.sim.equilibrate()
         self.assertTrue(os.path.exists('equil.gro'))
+
+    def test_equil(self):
+        self.sim.emin()
+        self.sim.equilibrate()
+        self.sim.production()
+        self.assertTrue(os.path.exists('prod.gro'))
 
         
 
