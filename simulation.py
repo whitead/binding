@@ -4,6 +4,7 @@ import logging, os, shutil, datetime, subprocess, re, textwrap
 ION_CONC=0#Molarity
 BOX_DIM=3#nm
 MDRUN='mdrun'
+SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
 DEBUG=True
@@ -59,6 +60,7 @@ class Simulation:
         self.anion_atoms = anion_atoms
         self.hill_height = hill_height
         self.sigma = sigma
+        self.plumed_files = ['COLVAR', 'HILLS', 'BIAS']
         
         to_copy = [anion_filename, cation_filename, topology_filename]
         #parse the topology file to find itp files to take
@@ -88,7 +90,7 @@ class Simulation:
                 if not os.path.exists(dirname):
                     os.mkdir(dirname)
                     #bring files
-                for f in self.itp_files + [self.current_structure, self.current_top]:
+                for f in self.itp_files + self.plumed_files + [self.current_structure, self.current_top]:
                     if(f is not None):
                         shutil.copyfile(f, os.path.join(dirname, os.path.basename(f)))            
                 #go there
@@ -99,7 +101,7 @@ class Simulation:
                     #make sure we leave
                     os.chdir(self.dir)
                     #bring back files
-                    for f in self.itp_files + [self.current_structure, self.current_top]:
+                    for f in self.itp_files + self.plumed_files + [self.current_structure, self.current_top, self.bias_file]:
                         if(f is not None):
                             shutil.copyfile(os.path.join(dirname, f),f)
             return mod_f
@@ -309,6 +311,9 @@ class Simulation:
             PRINT W_STRIDE 500
             DISTANCE LIST anion cation SIGMA 0.05
             ANGLE {a1} {a2} {a3} SIGMA 5
+            GRID CV 1 MIN 0 MAX 3.5 NBIN 300 
+            GRID CV 2 MIN -pi MAX pi NBIN 300 PBC
+            WRITE_GRID FILENAME BIAS W_STRIDE 10000
             anion->
             {anion}
             anion<-
@@ -341,6 +346,18 @@ class Simulation:
                             'plumed':plumed_file})
         self.current_structure = prod_structure
 
+    @_putInDir('analysis')
+    def analyze(self):
+        #get different dimension PMFs
+        self._exec_log(SUM_HULLS,
+                       'ndw':'1 2',
+                       'ncv': 2,
+                       'o':'pmf_da.dat')
+        self._exec_log(SUM_HULLS,
+                       'ndw':'1',
+                       'ncv': 2,
+                       'o':'pmf_d.dat')
+        
         
     def _setup_directory(self, *to_copy):
         #build directory, start log
