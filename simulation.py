@@ -3,7 +3,7 @@ import logging, os, shutil, datetime, subprocess, re, textwrap
 
 ION_CONC=0#Molarity
 BOX_DIM=3#nm
-MDRUN='mdrun'
+MDRUN='mpiexec.hydra mdrun_mpi'
 SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
@@ -91,7 +91,7 @@ class Simulation:
                     os.mkdir(dirname)
                     #bring files
                 for f in self.itp_files + self.plumed_files + [self.current_structure, self.current_top]:
-                    if(f is not None):
+                    if(f is not None and os.path.exists(f)):
                         shutil.copyfile(f, os.path.join(dirname, os.path.basename(f)))            
                 #go there
                 os.chdir(dirname)
@@ -101,8 +101,8 @@ class Simulation:
                     #make sure we leave
                     os.chdir(self.dir)
                     #bring back files
-                    for f in self.itp_files + self.plumed_files + [self.current_structure, self.current_top, self.bias_file]:
-                        if(f is not None):
+                    for f in self.itp_files + self.plumed_files + [self.current_structure, self.current_top]:
+                        if(f is not None and os.path.exists(os.path.join(dirname, f))):
                             shutil.copyfile(os.path.join(dirname, f),f)
             return mod_f
         return wrap
@@ -349,14 +349,14 @@ class Simulation:
     @_putInDir('analysis')
     def analyze(self):
         #get different dimension PMFs
-        self._exec_log(SUM_HULLS,
+        self._exec_log(SUM_HULLS,{
                        'ndw':'1 2',
                        'ncv': 2,
-                       'o':'pmf_da.dat')
-        self._exec_log(SUM_HULLS,
+                       'o':'pmf_da.dat'})
+        self._exec_log(SUM_HULLS,{
                        'ndw':'1',
                        'ncv': 2,
-                       'o':'pmf_d.dat')
+                       'o':'pmf_d.dat'})
         
         
     def _setup_directory(self, *to_copy):
