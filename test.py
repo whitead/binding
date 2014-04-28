@@ -47,11 +47,10 @@ class TestSimulation(unittest.TestCase):
                               'structures/guanidine.gro', 
                               'GUA',
                               'structures/topology.top',
-                              1, 
-                              1,
-                              [1],
-                              [1],
-                              [1,2,3])
+                              pressure=1, 
+                              cation_number=1,
+                              cation_atoms=[8],
+                              anion_atoms=[1,2])
 
     def tearDown(self):
         os.chdir('..')        
@@ -71,7 +70,7 @@ class TestSimulation(unittest.TestCase):
         self.sim.equilibrate()
         self.assertTrue(os.path.exists('equil.gro'))
 
-    def test_equil(self):
+    def test_prod(self):
         self.sim.emin()
         self.sim.equilibrate()
         self.sim.production()

@@ -3,13 +3,14 @@ import logging, os, shutil, datetime, subprocess, re, textwrap
 
 ION_CONC=0#Molarity
 BOX_DIM=3#nm
+MDRUN_PROD='mpiexec.hydra -n 8 mdrun_mpi'
 MDRUN='mpiexec.hydra mdrun_mpi'
 SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
 DEBUG=True
 HILL_HEIGHT=5
-SIGMA=[5,0.2]
+SIGMA=5
 
         
 class Simulation:
@@ -35,7 +36,6 @@ class Simulation:
                  cation_number, 
                  cation_atoms,
                  anion_atoms,
-                 angle,                 
                  equil_time=EQUIL_TIME,
                  prod_time=PROD_TIME,
                  salt_conc=ION_CONC,
@@ -46,8 +46,10 @@ class Simulation:
         Creates the directory, puts the cation and anion together and solvates
         """
         self.name = name        
-        self.current_top = os.path.basename(topology_filename)
+        self.current_top = os.path.basename(topology_filename)        
         self.current_structure, self.current_run = None, None
+        self.anion_resname = anion_resname
+        self.cation_resname = cation_resname
         self.pressure = pressure
         self.equil_time = equil_time
         self.prod_time=prod_time
@@ -55,7 +57,6 @@ class Simulation:
         self.add_ions = False
         if(salt_conc > 0 or cation_number != 1):
             self.add_ions = True
-        self.angle = angle
         self.cation_atoms = cation_atoms
         self.anion_atoms = anion_atoms
         self.hill_height = hill_height
@@ -143,7 +144,7 @@ class Simulation:
             pme-order       = 4
             ewald-rtol      = 1e-5
             dispcorr                 = ener
-            ;constraints              = h-angles
+            ;constraints              = h-bonds
 
             '''.format()))
 
@@ -229,7 +230,7 @@ class Simulation:
             ref_p                    = {pressure}
 
             ;Constraints
-            ;constraints              = h-angles
+            constraints              = h-bonds
 
             '''.format(pressure=self.pressure * 1.01325, 
                        time=self.equil_time * 10**6 / 2.)))
@@ -244,7 +245,7 @@ class Simulation:
         if(DEBUG):
             shutil.copyfile(self.current_structure, equil_structure)
         else:
-            self._exec_log(MDRUN, {'c':equil_structure, 's':self.current_run})
+            self._exec_log(MDRUN_PROD, {'c':equil_structure, 's':self.current_run})
         self.current_structure = equil_structure
 
 
@@ -253,6 +254,29 @@ class Simulation:
         """
         Production run in NVT with metadynamics
         """
+
+        #First we need to convert the CV atom indices to match our system.
+        #read through gro file and connect residue names with what we packed the system with
+        def convert_indices(resname, indices):
+            result = []
+            with open(self.current_structure) as f:
+                atom_index = 0            
+                residue_index = 0
+                for line in f:                
+                    regex = '\s*(\d*){}\s*\w*\s*(\d*).*'.format(resname)
+                    m = re.match(regex, line)
+                    if(m):
+                        if(m.group(1) != residue_index):
+                            residue_index = m.group(1)
+                            atom_index = 1
+                        else:
+                            atom_index += 1
+                    if(atom_index in indices):
+                        result.append(int(m.group(2)))
+            return result
+        cation_indices = convert_indices(self.cation_resname, self.cation_atoms)
+        anion_indices = convert_indices(self.anion_resname, self.anion_atoms)
+                            
         #build input file
         input_file = 'prod.mdp'
         with open(input_file, 'w') as f:
@@ -293,9 +317,6 @@ class Simulation:
             ref_t                    = 300
             tc-grps                  = System
             
-            ;Pressure            
-            pcoupl                   = no
-
             ;Constraints
             ;constraints              = h-angles
 
@@ -306,13 +327,11 @@ class Simulation:
         plumed_file = 'plumed.dat'
         with open(plumed_file, 'w') as f:
             f.write(textwrap.dedent('''
-            HILL HEIGHT 0.1
+            HILLS HEIGHT 0.1
             WELLTEMPERED SIMTEMP 300 BIASFACTOR 15
             PRINT W_STRIDE 500
-            DISTANCE LIST anion cation SIGMA 0.05
-            ANGLE {a1} {a2} {a3} SIGMA 5
+            DISTANCE LIST <anion> <cation> SIGMA 0.05
             GRID CV 1 MIN 0 MAX 3.5 NBIN 300 
-            GRID CV 2 MIN -pi MAX pi NBIN 300 PBC
             WRITE_GRID FILENAME BIAS W_STRIDE 10000
             anion->
             {anion}
@@ -321,13 +340,10 @@ class Simulation:
             {cation}
             cation<-
             ENDMETA
-            '''.format(a1=self.angle[0], 
-                       a2=self.angle[1], 
-                       a3=self.angle[2], 
-                       cation=reduce(lambda x,y:'{} {}'.format(x,y),
-                                     self.cation_atoms),
+            '''.format(cation=reduce(lambda x,y:'{} {}'.format(x,y),
+                                     cation_indices),
                        anion=reduce(lambda x,y:'{} {}'.format(x,y),
-                                    self.anion_atoms))))
+                                    anion_indices))))
                     
             #prepare run
             self._exec_log('grompp',
@@ -340,7 +356,7 @@ class Simulation:
         if(DEBUG):
             shutil.copyfile(self.current_structure, prod_structure)
         else:
-            self._exec_log(MDRUN, 
+            self._exec_log(MDRUN_PROD, 
                            {'c':prod_structure, 
                             's':self.current_run,
                             'plumed':plumed_file})
