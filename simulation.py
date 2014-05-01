@@ -8,7 +8,7 @@ MDRUN='mpiexec.hydra mdrun_mpi'
 SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
-DEBUG=True
+DEBUG=False
 HILL_HEIGHT=5
 SIGMA=5
 
@@ -125,7 +125,7 @@ class Simulation:
             
             
             ; Output frequency for coords (x), velocities (v) and forces (f) = 
-            nstxout                  = 0
+            nstxout                  = 5
             nstvout                  = 0
             nstfout                  = 0
             
@@ -144,7 +144,7 @@ class Simulation:
             pme-order       = 4
             ewald-rtol      = 1e-5
             dispcorr                 = ener
-            ;constraints              = h-bonds
+            ;constraints              = h-angles
 
             '''.format()))
 
@@ -195,7 +195,7 @@ class Simulation:
             
             
             ; Output frequency for coords (x), velocities (v) and forces (f) = 
-            nstxout                  = 1000
+            nstxout                  = 1
             nstvout                  = 0
             nstfout                  = 0
             
@@ -318,7 +318,7 @@ class Simulation:
             tc-grps                  = System
             
             ;Constraints
-            ;constraints              = h-angles
+            constraints              = h-bonds
 
             '''.format(pressure=self.pressure * 1.01325, 
                        time=self.prod_time * 10**6 / 2.)))

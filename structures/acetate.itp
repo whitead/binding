@@ -65,6 +65,6 @@ ACT                 3
 [ constraints ]
 ;taken from the bond tables
 ; atom1 atom2 type distance
-  4     5     1    0.10800
-  4     6     1    0.10800
-  4     7     1    0.10800
+  4     5     1    0.10900; CT - HC
+  4     6     1    0.10900; CT - HC
+  4     7     1    0.10900; CT - HC
