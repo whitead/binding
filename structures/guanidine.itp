@@ -1,11 +1,4 @@
-;
-; 	OPLS-AA topology, built by TopolGen version 1.1_dev (10/14/2009)
-; 	Script written by: Justin Lemkul (jalemkul@vt.edu)
-; 	This is your molecule's topology
-; 	Check it carefully for any errors. It is not necessarily perfect!
-;
-; 	Topology written on Sun Apr 13 21:19:38 CDT 2014
-;
+; Guanidine topology, made by Andrew White
 [ moleculetype ]
 ; Name            nrexcl
 GUA                 3
