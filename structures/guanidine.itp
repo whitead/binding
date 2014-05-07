@@ -39,24 +39,24 @@ GUA                 3
 ;I've disabled some of them because they're causing the simulation to crash. 
 ;Namely the ones between neighboring nitrogens and hydrogens
 ;  ai    aj funct
-   9      2
+;   9      2
 ;   9	  7
-   10	  2
+;   10	  2
 ;   10	  7
-   12	  2
+;   12	  2
 ;   12	  6
-   13	  2
+;   13	  2
 ;   13	  6
 ;   6	  11
-   6	  1
+;   6	  1
 ;   7	  11
-   7	  1
-   8	  3
-   8	  4
-   8	  5
-   11	  3
-   11	  4
-   11	  5 
+;   7	  1
+;   8	  3
+;   8	  4
+;   8	  5
+;   11	  3
+;   11	  4
+;   11	  5 
 
 [ angles ]
 ;  ai    aj    ak funct

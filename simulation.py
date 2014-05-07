@@ -9,8 +9,8 @@ SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
 DEBUG=False
-HILL_HEIGHT=5
-SIGMA=5
+HILL_HEIGHT=0.1
+SIGMA=0.05
 
         
 class Simulation:
@@ -144,7 +144,7 @@ class Simulation:
             pme-order       = 4
             ewald-rtol      = 1e-5
             dispcorr                 = ener
-            ;constraints              = h-angles
+            ;constraints              = h-bonds
 
             '''.format()))
 
@@ -327,10 +327,10 @@ class Simulation:
         plumed_file = 'plumed.dat'
         with open(plumed_file, 'w') as f:
             f.write(textwrap.dedent('''
-            HILLS HEIGHT 0.1
-            WELLTEMPERED SIMTEMP 300 BIASFACTOR 15
+            HILLS HEIGHT {hill_height} W_STRIDE 1000
+            WELLTEMPERED SIMTEMP 300 BIASFACTOR 5
             PRINT W_STRIDE 500
-            DISTANCE LIST <anion> <cation> SIGMA 0.05
+            DISTANCE LIST <anion> <cation> SIGMA {sigma}
             GRID CV 1 MIN 0 MAX 3.5 NBIN 300 
             WRITE_GRID FILENAME BIAS W_STRIDE 10000
             anion->
@@ -340,7 +340,7 @@ class Simulation:
             {cation}
             cation<-
             ENDMETA
-            '''.format(cation=reduce(lambda x,y:'{} {}'.format(x,y),
+            '''.format(hill_height=self.hill_height, sigma=self.sigma, cation=reduce(lambda x,y:'{} {}'.format(x,y),
                                      cation_indices),
                        anion=reduce(lambda x,y:'{} {}'.format(x,y),
                                     anion_indices))))
