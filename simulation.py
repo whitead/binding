@@ -55,6 +55,7 @@ class Simulation:
         self.prod_time=prod_time
         self.ionc = salt_conc
         self.add_ions = False
+        self.cation_number = cation_number
         if(salt_conc > 0 or cation_number != 1):
             self.add_ions = True
         self.cation_atoms = cation_atoms
@@ -161,19 +162,23 @@ class Simulation:
 
         #now add ions if needed
         if(self.add_ions):
-            emin_structure = 'emin.gro'
+            emin_structure = 'emin_noion.gro'
+            arg_dic={'s':self.current_run, 
+                     'o':emin_structure, 
+                     'neutral':'', 
+                     'conc':self.ionc}
 
+
+            #get charge
+            toadd = self.cation_number - 1
+            if(toadd > 0):
+                arg_dic['nn'] = toadd
+            
             #get the group for SOL. Requires a read and kill to find group ordering
-            match = self._read_and_kill(string='genion', 
-                                    arg_dic={'s':self.current_run, 
-                                             'o':emin_structure, 
-                                             'neutral':'', 
-                                             'conc':self.ionc},
-                                    read_fxn=lambda x: re.match('\s*Group\s*(\d+)\s*\(\s*SOL.*', x))
+            match = self._read_and_kill(string='genion', arg_dic=arg_dic,
+                                        read_fxn=lambda x: re.match('\s*Group\s*(\d+)\s*\(\s*SOL.*', x))
             sol_group = match.group(1)
-            self._exec_log('genion', 
-                           {'s':self.current_run, 'o':emin_structure, 'neutral':'', 'conc':self.ionc}, 
-                           sol_group)
+            self._exec_log('genion', arg_dic, sol_group)
             self.current_structure = emin_structure
 
 
@@ -385,12 +390,14 @@ class Simulation:
         for f in to_copy:
             shutil.copyfile(f, os.path.join(self.dir, os.path.basename(f)))
         os.chdir(self.dir)
-        if os.path.exists('simulation.log'):
-            logging.basicConfig(filename='simulation.log',level=logging.DEBUG)
-            logging.info('Restarting simulation on {}'.format(datetime.datetime.now().strftime('%b-%d-%I%M%p-%G')))
-        else:
-            logging.basicConfig(filename='simulation.log',level=logging.DEBUG)
-            logging.info('Beginning simulation on {}'.format(datetime.datetime.now().strftime('%b-%d-%I%M%p-%G')))
+        #remove other logging handlers
+        log = logging.getLogger()
+        for hdlr in log.handlers:
+            log.removeHandler(hdlr)        
+        fileh = logging.FileHandler('simulation.log', 'a')
+        fileh.setLevel(logging.DEBUG)
+        log.addHandler(fileh)
+        logging.info('Beginning simulation {}'.format(datetime.datetime.now().strftime('%b-%d-%I%M%p-%G')))
             
     def _pack(self, afile, ares, cfile, cres, cnumber, box):
         #update topology file

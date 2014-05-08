@@ -54,7 +54,7 @@ class TestSimulation(unittest.TestCase):
 
     def tearDown(self):
         os.chdir('..')        
-#        shutil.rmtree('TestSimulationDir')
+        shutil.rmtree('TestSimulationDir')
     
     def test_emin(self):
         self.sim.emin()
@@ -75,6 +75,83 @@ class TestSimulation(unittest.TestCase):
         self.sim.equilibrate()
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
+
+class TestMethylamine(unittest.TestCase):
+
+    def setUp(self):
+        self.sim = Simulation('TestMethylamineDir', 
+                              'structures/acetate.gro', 
+                              'ACT', 
+                              'structures/methylamine.gro', 
+                              'MAM',
+                              'structures/topology.top',
+                              pressure=1, 
+                              cation_number=1,
+                              cation_atoms=[4],
+                              anion_atoms=[1,2])
+
+    def tearDown(self):
+        os.chdir('..')        
+#        shutil.rmtree('TestMethylamineDir')
+    
+    def test_emin(self):
+        self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
+        
+    def test_ionc(self):
+        self.sim.ionc = 0.1
+        self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
+
+    def test_equil(self):
+        self.sim.emin()
+        self.sim.equilibrate()
+        self.assertTrue(os.path.exists('equil.gro'))
+
+    def test_prod(self):
+        self.sim.emin()
+        self.sim.equilibrate()
+        self.sim.production()
+        self.assertTrue(os.path.exists('prod.gro'))
+
+class TestBetaine(unittest.TestCase):
+
+    def setUp(self):
+        self.sim = Simulation('TestBetaineDir', 
+                              'structures/acetate.gro', 
+                              'ACT', 
+                              'structures/betaine.gro', 
+                              'BET',
+                              'structures/topology.top',
+                              pressure=1, 
+                              cation_number=1,
+                              cation_atoms=[1],
+                              anion_atoms=[1,2])
+
+    def tearDown(self):
+        os.chdir('..')        
+#        shutil.rmtree('TestBetaineDir')
+    
+    def test_emin(self):
+        self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
+        
+    def test_ionc(self):
+        self.sim.ionc = 0.1
+        self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
+
+    def test_equil(self):
+        self.sim.emin()
+        self.sim.equilibrate()
+        self.assertTrue(os.path.exists('equil.gro'))
+
+    def test_prod(self):
+        self.sim.emin()
+        self.sim.equilibrate()
+        self.sim.production()
+        self.assertTrue(os.path.exists('prod.gro'))
+
 
         
 
