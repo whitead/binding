@@ -372,7 +372,7 @@ class Simulation:
     @_putInDir('analysis')
     def analyze(self):
         #get PMF
-        self._exec_log(SUM_HULLS,{
+        self._exec_log(SUM_HILLS,{
             'file': 'HILLS',
             'ndw':1,
             'ncv': 1,
@@ -380,9 +380,11 @@ class Simulation:
             'out':'pmf.dat'})
 
         #plot that sucker
-        import matplotlib as plt
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
         import numpy as np
-        plt.figure()
+        plt.figure(figsize=(8,6), dpi=90)
         data = np.genfromtxt('pmf.dat')
         plt.plot(data[:,1], data[:,2])
         plt.xlabel('r [nm]')
