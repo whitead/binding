@@ -64,7 +64,7 @@ class TestSimulation(unittest.TestCase):
         self.assertTrue(os.path.exists('equil.gro'))
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
-        self.analyze()
+        self.sim.analyze()
         self.assertTrue(os.path.exists('analysis/pmf.dat'))
         self.assertTrue(os.path.exists('analysis/pmf.png'))
 
@@ -94,7 +94,7 @@ class TestMethylamine(unittest.TestCase):
         self.assertTrue(os.path.exists('equil.gro'))
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
-        self.analyze()
+        self.sim.analyze()
         self.assertTrue(os.path.exists('analysis/pmf.dat'))
         self.assertTrue(os.path.exists('analysis/pmf.png'))
 
@@ -126,7 +126,7 @@ class TestBetaine(unittest.TestCase):
         self.assertTrue(os.path.exists('equil.gro'))
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
-        self.analyze()
+        self.sim.analyze()
         self.assertTrue(os.path.exists('analysis/pmf.dat'))
         self.assertTrue(os.path.exists('analysis/pmf.png'))    
 
