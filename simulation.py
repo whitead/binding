@@ -371,16 +371,23 @@ class Simulation:
 
     @_putInDir('analysis')
     def analyze(self):
-        #get different dimension PMFs
+        #get PMF
         self._exec_log(SUM_HULLS,{
-                       'ndw':'1 2',
-                       'ncv': 2,
-                       'o':'pmf_da.dat'})
-        self._exec_log(SUM_HULLS,{
-                       'ndw':'1',
-                       'ncv': 2,
-                       'o':'pmf_d.dat'})
-        
+            'file': 'HILLS',
+            'ndw':1,
+            'ncv': 1,
+            'kt': 2.494,
+            'out':'pmf.dat'})
+
+        #plot that sucker
+        import matplotlib as plt
+        import numpy as np
+        plt.figure()
+        data = np.genfromtxt('pmf.dat')
+        plt.plot(data[:,1], data[:,2])
+        plt.xlabel('r [nm]')
+        plt.ylabel(r'$\Delta$ A [kJ/mol]')
+        plt.savefig('pmf.png')
         
     def _setup_directory(self, *to_copy):
         #build directory, start log

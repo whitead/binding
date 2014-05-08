@@ -1,4 +1,5 @@
 import unittest, os, shutil
+
 from simulation import *
 
 class TestSimulationSimple(unittest.TestCase):
@@ -54,27 +55,19 @@ class TestSimulation(unittest.TestCase):
 
     def tearDown(self):
         os.chdir('..')        
-        shutil.rmtree('TestSimulationDir')
+        #shutil.rmtree('TestSimulationDir')
     
-    def test_emin(self):
+    def test_all(self):
         self.sim.emin()
         self.assertTrue(os.path.exists('emin.gro'))
-        
-    def test_ionc(self):
-        self.sim.ionc = 0.1
-        self.sim.emin()
-        self.assertTrue(os.path.exists('emin.gro'))
-
-    def test_equil(self):
-        self.sim.emin()
         self.sim.equilibrate()
         self.assertTrue(os.path.exists('equil.gro'))
-
-    def test_prod(self):
-        self.sim.emin()
-        self.sim.equilibrate()
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
+        self.analyze()
+        self.assertTrue(os.path.exists('analysis/pmf.dat'))
+        self.assertTrue(os.path.exists('analysis/pmf.png'))
+
 
 class TestMethylamine(unittest.TestCase):
 
@@ -92,27 +85,19 @@ class TestMethylamine(unittest.TestCase):
 
     def tearDown(self):
         os.chdir('..')        
-#        shutil.rmtree('TestMethylamineDir')
-    
-    def test_emin(self):
-        self.sim.emin()
-        self.assertTrue(os.path.exists('emin.gro'))
-        
-    def test_ionc(self):
-        self.sim.ionc = 0.1
-        self.sim.emin()
-        self.assertTrue(os.path.exists('emin.gro'))
+        #shutil.rmtree('TestMethylamineDir')
 
-    def test_equil(self):
+    def test_all(self):
         self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
         self.sim.equilibrate()
         self.assertTrue(os.path.exists('equil.gro'))
-
-    def test_prod(self):
-        self.sim.emin()
-        self.sim.equilibrate()
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
+        self.analyze()
+        self.assertTrue(os.path.exists('analysis/pmf.dat'))
+        self.assertTrue(os.path.exists('analysis/pmf.png'))
+
 
 class TestBetaine(unittest.TestCase):
 
@@ -130,30 +115,21 @@ class TestBetaine(unittest.TestCase):
 
     def tearDown(self):
         os.chdir('..')        
-#        shutil.rmtree('TestBetaineDir')
-    
-    def test_emin(self):
-        self.sim.emin()
-        self.assertTrue(os.path.exists('emin.gro'))
-        
-    def test_ionc(self):
-        self.sim.ionc = 0.1
-        self.sim.emin()
-        self.assertTrue(os.path.exists('emin.gro'))
+        #shutil.rmtree('TestBetaineDir')
 
-    def test_equil(self):
-        self.sim.emin()
-        self.sim.equilibrate()
-        self.assertTrue(os.path.exists('equil.gro'))
+
 
     def test_prod(self):
         self.sim.emin()
+        self.assertTrue(os.path.exists('emin.gro'))
         self.sim.equilibrate()
+        self.assertTrue(os.path.exists('equil.gro'))
         self.sim.production()
         self.assertTrue(os.path.exists('prod.gro'))
+        self.analyze()
+        self.assertTrue(os.path.exists('analysis/pmf.dat'))
+        self.assertTrue(os.path.exists('analysis/pmf.png'))    
 
-
-        
 
 if __name__ == '__main__':
     unittest.main()
