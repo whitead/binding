@@ -5,7 +5,7 @@ BET	       3
 
 [ atoms ]
 ; nr	type	  resnr	residue	atom	cgnr	charge	mass
-  1	opls_288  1	BET	N	1	0.3914	14.0067
+  1	opls_288  1	BET	N	1	0.3916	14.0067
   2	opls_905  1	BET	C	2	-0.372	12.0110
   3	opls_905  1	BET	C	3	-0.372	12.0110
   4	opls_905  1	BET	C	4	-0.372	12.0110
