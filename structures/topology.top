@@ -1,4 +1,6 @@
 #include "ffoplsaa.itp"
 #include "acetate.itp"
 #include "guanidine.itp"
+#include "methylamine.itp"
+#include "betaine.itp"
 #include "tip4p.itp"

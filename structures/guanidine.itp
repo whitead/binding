@@ -6,18 +6,18 @@ GUA                 3
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
      1   opls_305      1    GUA      C      1      0.200   12.01100                             
-     2   opls_303      1    GUA      N      1     -0.700   14.00670                             
+     2   opls_303      1    GUA      N      2     -0.700   14.00670                             
      3   opls_140      1    GUA      H      1      0.060    1.00800                             
      4   opls_140      1    GUA      H      1      0.060    1.00800                             
      5   opls_140      1    GUA      H      1      0.060    1.00800                             
-     6   opls_300      1    GUA      N      1     -0.800   14.00670                             
-     7   opls_300      1    GUA      N      1     -0.800   14.00670                             
-     8   opls_302      1    GUA      C      1      0.640   12.01100                             
-     9   opls_301      1    GUA      H      1      0.460    1.00800                             
-    10   opls_301      1    GUA      H      1      0.460    1.00800                             
-    11   opls_304      1    GUA      H      1      0.440    1.00800                             
-    12   opls_301      1    GUA      H      1      0.460    1.00800                             
-    13   opls_301      1    GUA      H      1      0.460    1.00800                             
+     6   opls_300      1    GUA      N      2     -0.800   14.00670                             
+     7   opls_300      1    GUA      N      2     -0.800   14.00670                             
+     8   opls_302      1    GUA      C      2      0.640   12.01100                             
+     9   opls_301      1    GUA      H      2      0.460    1.00800                             
+    10   opls_301      1    GUA      H      2      0.460    1.00800                             
+    11   opls_304      1    GUA      H      2      0.440    1.00800                             
+    12   opls_301      1    GUA      H      2      0.460    1.00800                             
+    13   opls_301      1    GUA      H      2      0.460    1.00800                             
 
 [ bonds ]
 ;  ai    aj funct

@@ -8,7 +8,7 @@ MDRUN='mpiexec.hydra mdrun_mpi'
 SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
-DEBUG=False
+DEBUG=True
 HILL_HEIGHT=0.1
 SIGMA=0.05
 
@@ -340,7 +340,9 @@ class Simulation:
             {cation}
             cation<-
             ENDMETA
-            '''.format(hill_height=self.hill_height, sigma=self.sigma, cation=reduce(lambda x,y:'{} {}'.format(x,y),
+            '''.format(hill_height=self.hill_height, 
+                       sigma=self.sigma, 
+                       cation=reduce(lambda x,y:'{} {}'.format(x,y),
                                      cation_indices),
                        anion=reduce(lambda x,y:'{} {}'.format(x,y),
                                     anion_indices))))
