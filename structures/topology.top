@@ -4,3 +4,4 @@
 #include "methylamine.itp"
 #include "betaine.itp"
 #include "tip4p.itp"
+#include "oplsaa.ff/ions.itp"

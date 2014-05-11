@@ -8,7 +8,7 @@ MDRUN='mpiexec.hydra mdrun_mpi'
 SUM_HILLS='sum_hills'
 EQUIL_TIME=2.5
 PROD_TIME=40
-DEBUG=True
+DEBUG=False
 HILL_HEIGHT=0.1
 SIGMA=0.05
 
@@ -162,7 +162,7 @@ class Simulation:
 
         #now add ions if needed
         if(self.add_ions):
-            emin_structure = 'emin_noion.gro'
+            emin_structure = 'emin.gro'
             arg_dic={'s':self.current_run, 
                      'o':emin_structure, 
                      'neutral':'', 
@@ -178,6 +178,7 @@ class Simulation:
             match = self._read_and_kill(string='genion', arg_dic=arg_dic,
                                         read_fxn=lambda x: re.match('\s*Group\s*(\d+)\s*\(\s*SOL.*', x))
             sol_group = match.group(1)
+            arg_dic['p'] = self.current_top
             self._exec_log('genion', arg_dic, sol_group)
             self.current_structure = emin_structure
 
