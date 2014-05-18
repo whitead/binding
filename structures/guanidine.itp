@@ -10,14 +10,14 @@ GUA                 3
      3   opls_140      1    GUA      H      1      0.060    1.00800                             
      4   opls_140      1    GUA      H      1      0.060    1.00800                             
      5   opls_140      1    GUA      H      1      0.060    1.00800                             
-     6   opls_300      1    GUA      N      2     -0.800   14.00670                             
-     7   opls_300      1    GUA      N      2     -0.800   14.00670                             
-     8   opls_302      1    GUA      C      2      0.640   12.01100                             
-     9   opls_301      1    GUA      H      2      0.460    1.00800                             
-    10   opls_301      1    GUA      H      2      0.460    1.00800                             
+     6   opls_300      1    GUA      N      4     -0.800   14.00670                             
+     7   opls_300      1    GUA      N      5     -0.800   14.00670                             
+     8   opls_302      1    GUA      C      3      0.640   12.01100                             
+     9   opls_301      1    GUA      H      4      0.460    1.00800                             
+    10   opls_301      1    GUA      H      4      0.460    1.00800                             
     11   opls_304      1    GUA      H      2      0.440    1.00800                             
-    12   opls_301      1    GUA      H      2      0.460    1.00800                             
-    13   opls_301      1    GUA      H      2      0.460    1.00800                             
+    12   opls_301      1    GUA      H      5      0.460    1.00800                             
+    13   opls_301      1    GUA      H      5      0.460    1.00800                             
 
 [ bonds ]
 ;  ai    aj funct
@@ -78,20 +78,21 @@ GUA                 3
 
 [ dihedrals ]
 ;  ai    aj    ak    al funct 
-   9     6     8     2    3
-   10     6     8     2   3
-   12     7     8     2   3
-   13     7     8     2   3
+;   9     6     8     2    3
+;   10     6     8     2   3
+;   12     7     8     2   3
+;   13     7     8     2   3
    6	  8	2     1	  3
    7	  8	2     1	  3
-   6	  8	2    11	  3
-   7	  8	2    11	  3
+;   6	  8	2    11	  3
+;   7	  8	2    11	  3
    8	  2	1    3	  3
    8	  2	1    4	  3
    8	  2	1    5	  3
    11	  2	1    3	  3
    11	  2	1    4	  3
    11	  2	1    5	  3
+
 ; These are taken from the ARG residue in the aminoacids.rtp. They are impropers implemented as dihedrals
 ;  aj    ak    ai    al funct 
     1     8     2    11  1    improper_Z_N_X_Y	;     CD     CZ     NE     HE

@@ -9,10 +9,10 @@ ACT                 3
      1   opls_272      1    ACT      O      1     -0.800   15.99940                             
      2   opls_272      1    ACT      O      1     -0.800   15.99940                             
      3   opls_271      1    ACT      C      1      0.700   12.01100                             
-     4   opls_273      1    ACT      C      1     -0.280   12.01100                             
-     5   opls_140      1    ACT      H      1      0.060    1.00800                             
-     6   opls_140      1    ACT      H      1      0.060    1.00800                             
-     7   opls_140      1    ACT      H      1      0.060    1.00800                             
+     4   opls_273      1    ACT      C      2     -0.280   12.01100                             
+     5   opls_140      1    ACT      H      2      0.060    1.00800                             
+     6   opls_140      1    ACT      H      2      0.060    1.00800                             
+     7   opls_140      1    ACT      H      2      0.060    1.00800                             
 
 [ bonds ]
 ;  ai    aj funct
@@ -59,6 +59,6 @@ ACT                 3
 [ constraints ]
 ;taken from the bond tables
 ; atom1 atom2 type distance
-  4     5     1    0.10900; CT - HC
-  4     6     1    0.10900; CT - HC
-  4     7     1    0.10900; CT - HC
+;  4     5     1    0.10900; CT - HC
+;  4     6     1    0.10900; CT - HC
+;  4     7     1    0.10900; CT - HC

@@ -2,12 +2,12 @@ import logging, os, shutil, datetime, subprocess, re, textwrap
 
 
 ION_CONC=0#Molarity
-BOX_DIM=3#nm
+BOX_DIM=3.5#nm
 MDRUN_PROD='mpiexec.hydra -n 8 mdrun_mpi'
 MDRUN='mpiexec.hydra mdrun_mpi'
 SUM_HILLS='sum_hills'
-EQUIL_TIME=2.5
-PROD_TIME=40
+EQUIL_TIME=5
+PROD_TIME=50
 DEBUG=False
 HILL_HEIGHT=0.1
 SIGMA=0.05
@@ -36,6 +36,7 @@ class Simulation:
                  cation_number, 
                  cation_atoms,
                  anion_atoms,
+                 box_dim=BOX_DIM,
                  equil_time=EQUIL_TIME,
                  prod_time=PROD_TIME,
                  salt_conc=ION_CONC,
@@ -80,8 +81,8 @@ class Simulation:
         
         self._setup_directory(*to_copy)
         if(initialize):
-            self._pack(os.path.basename(anion_filename), anion_resname, os.path.basename(cation_filename), cation_resname, cation_number, BOX_DIM)
-            self._solvate(BOX_DIM)
+            self._pack(os.path.basename(anion_filename), anion_resname, os.path.basename(cation_filename), cation_resname, cation_number, box_dim)
+            self._solvate(box_dim)
 
     def _putInDir(dirname):
         """
@@ -196,12 +197,12 @@ class Simulation:
             ; RUN CONTROL PARAMETERS = 
             integrator               = sd
             nsteps                   = {time}
-            dt                       = 0.002
+            dt                       = 0.0005
             
             
             
             ; Output frequency for coords (x), velocities (v) and forces (f) = 
-            nstxout                  = 1
+            nstxout                  = 1000
             nstvout                  = 0
             nstfout                  = 0
             
@@ -231,15 +232,18 @@ class Simulation:
             
             ;Pressure            
             pcoupl                   = berendsen
-            tau_p                    = 2
+            tau_p                    = 250
             compressibility          = 4.5e-5
             ref_p                    = {pressure}
 
             ;Constraints
             constraints              = h-bonds
+            lincs_iter               = 2
+            lincs_order              = 6
+
 
             '''.format(pressure=self.pressure * 1.01325, 
-                       time=self.equil_time * 10**6 / 2.)))
+                       time=self.equil_time * 10**6 / 0.5)))
 
         #prepare run
         self._exec_log('grompp', {'c':self.current_structure, 
@@ -325,6 +329,9 @@ class Simulation:
             
             ;Constraints
             constraints              = h-bonds
+            lincs_iter               = 2
+            lincs_order              = 6
+
 
             '''.format(pressure=self.pressure * 1.01325, 
                        time=self.prod_time * 10**6 / 2.)))
@@ -333,12 +340,10 @@ class Simulation:
         plumed_file = 'plumed.dat'
         with open(plumed_file, 'w') as f:
             f.write(textwrap.dedent('''
-            HILLS HEIGHT {hill_height} W_STRIDE 1000
-            WELLTEMPERED SIMTEMP 300 BIASFACTOR 5
-            PRINT W_STRIDE 500
+            HILLS HEIGHT {hill_height} W_STRIDE 300
+            WELLTEMPERED SIMTEMP 300 BIASFACTOR 10
+            PRINT W_STRIDE 300
             DISTANCE LIST <anion> <cation> SIGMA {sigma}
-            GRID CV 1 MIN 0 MAX 3.5 NBIN 300 
-            WRITE_GRID FILENAME BIAS W_STRIDE 10000
             anion->
             {anion}
             anion<-
@@ -376,8 +381,9 @@ class Simulation:
         self._exec_log(SUM_HILLS,{
             'file': 'HILLS',
             'ndw':1,
-            'ncv': 1,
+            'ndim': 1,
             'kt': 2.494,
+            'ngrid': 500,
             'out':'pmf.dat'})
 
         #plot that sucker
@@ -387,10 +393,23 @@ class Simulation:
         import numpy as np
         plt.figure(figsize=(8,6), dpi=90)
         data = np.genfromtxt('pmf.dat')
-        plt.plot(data[:,1], data[:,2])
+        #entropy correction
+        ent_corr = 2 * 2.494 * np.log(data[:,0] / data[np.argmin(data[:,1]),0])
+        data[:,1] += ent_corr
+        #get 0-line
+        #0.5 < x < 1
+        zero_point = np.mean(data[np.where(data[:,0] > 0.4)[0],1][np.where(data[np.where(data[:,0] > 0.4)[0], 0] < 1)[0]])
+        data[:,1] -= zero_point
+        #plot
+        plt.plot(data[:,0], data[:,1])
+        ax = plt.gca()
+        ax.set_xlim([0.2,1.0])
+        ymax = ax.get_ylim()[0]
+        ax.set_ylim(ymax, -ymax)
         plt.xlabel('r [nm]')
         plt.ylabel(r'$\Delta$ A [kJ/mol]')
         plt.savefig('pmf.png')
+        np.savetxt('pmf_processed.txt', data)
         
     def _setup_directory(self, *to_copy):
         #build directory, start log
@@ -495,6 +514,7 @@ class Simulation:
         if(arg_dic is not None):
             for k,v in arg_dic.iteritems():
                 string += ' -{} {}'.format(k,v)
+        logging.info('Running {} with arguments'.format(string))
         try:
             process = subprocess.Popen(string, shell=True,
                                        stdout=subprocess.PIPE,
@@ -514,8 +534,6 @@ class Simulation:
                 logging.error('{} failed with {}. stderr follow'.format(string, retcode))
                 logging.error(err)
                 raise OSError('{} failed with {}. stderr follow'.format(string, retcode))
-            else:
-                logging.info('{} with arguments'.format(string))
         except OSError as e:
             print >>sys.stderr, 'Execution of {} failed:'.format(string), e
 
