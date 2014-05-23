@@ -11,6 +11,7 @@ PROD_TIME=50
 DEBUG=False
 HILL_HEIGHT=0.1
 SIGMA=0.05
+ONLY_1_CATION=True
 
         
 class Simulation:
@@ -267,8 +268,9 @@ class Simulation:
 
         #First we need to convert the CV atom indices to match our system.
         #read through gro file and connect residue names with what we packed the system with
-        def convert_indices(resname, indices):
-            result = []
+        def convert_indices(resname, indices, stop_after = None):
+            result = []            
+            residue_count = 0
             with open(self.current_structure) as f:
                 atom_index = 0            
                 residue_index = 0
@@ -277,6 +279,9 @@ class Simulation:
                     m = re.match(regex, line)
                     if(m):
                         if(m.group(1) != residue_index):
+                            residue_count += 1
+                            if(stop_after is not None and residue_count > stop_after):
+                                break
                             residue_index = m.group(1)
                             atom_index = 1
                         else:
@@ -284,7 +289,10 @@ class Simulation:
                     if(atom_index in indices):
                         result.append(int(m.group(2)))
             return result
-        cation_indices = convert_indices(self.cation_resname, self.cation_atoms)
+        if(ONLY_1_CATION):
+            cation_indices = convert_indices(self.cation_resname, self.cation_atoms, 1)
+        else:
+            cation_indices = convert_indices(self.cation_resname, self.cation_atoms, 1)
         anion_indices = convert_indices(self.anion_resname, self.anion_atoms)
                             
         #build input file

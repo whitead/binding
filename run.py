@@ -2,7 +2,7 @@ import sys
 from simulation import *
 
 
-def run(resname, shortname, anion_atoms, cation_atoms, index, cset=[1,5,10], pset=[1, 10, 50]):
+def run(resname, shortname, anion_atoms, cation_atoms, index, cset=[1,4,11], pset=[1, 30, 50]):
     i = 0
     box_dim=[3,3,3]
     for ci,bi in zip(cset, box_dim):
@@ -39,7 +39,7 @@ if(len(sys.argv) != 3):
 
 index = int(sys.argv[2])
 if(sys.argv[1] == 'GUA'):
-    run('guanidine', 'GUA', [1,2], [2,6,7], index=index)
+    run('guanidine', 'GUA', [1,2], [8], index=index)
 elif(sys.argv[1] == 'MAM'):    
     run('methylamine', 'MAM', [1,2], [4], index=index)
 elif(sys.argv[1] == 'BET'):
